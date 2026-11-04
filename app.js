@@ -40,7 +40,8 @@
       const r=pixels[p],g=pixels[p+1],b=pixels[p+2],bright=(r+g+b)/3;
       if(isText&&bright<45)continue;
       const jitter=(noise(x*1000+y)-.5)*step*.55;
-      points.push({x:(x-260)*.62+jitter,y:(130-y)*.62,z:(bright/255-.5)*40, color:[r,g,b],seed:y*520+x});
+      const spread=isText?1.15:.62;
+      points.push({x:(x-260)*spread+jitter,y:(130-y)*spread,z:(bright/255-.5)*40, color:[r,g,b],seed:y*520+x});
     }
     state.points=points;
   }
@@ -111,7 +112,7 @@
     ctx.fillStyle='#05020b';ctx.fillRect(0,0,width,height);
     const glow=ctx.createRadialGradient(width/2,height/2,0,width/2,height/2,Math.max(width,height)*.47);
     glow.addColorStop(0,'rgba(71,30,120,.2)');glow.addColorStop(1,'rgba(4,2,10,0)');ctx.fillStyle=glow;ctx.fillRect(0,0,width,height);
-    const size=number('pointSize')*Math.min(width/1100,height/700);
+    const size=number('pointSize')*Math.min(width/650,height/450);
     const mode=controls.colorMode.value;
     const scanY=height*(t/number('duration'));
     const markers=[];
@@ -124,7 +125,7 @@
       else if(mode==='white')color=[238,230,255];
       else if(mode==='cyan')color=[80,229,242];
       else color=[176,110,255];
-      const alpha=clamp(.47+(p.z+160)/600,.3,.95);
+      const alpha=clamp(.65+(p.z+160)/600,.45,1);
       ctx.fillStyle=`rgba(${color[0]},${color[1]},${color[2]},${alpha})`;
       const radius=Math.max(.5,size*clamp(p.scale,.65,1.6));
       ctx.fillRect(p.x-radius/2,p.y-radius/2,radius,radius);
