@@ -38,7 +38,7 @@
     const w=image.width*scale,h=image.height*scale;
     c.drawImage(image,(off.width-w)/2,(off.height-h)/2,w,h);
     const pixels=c.getImageData(0,0,off.width,off.height).data;
-    const step=clamp(Math.round(5-number('density')/45),2,4);
+    const step=isText?clamp(Math.round(4-number('density')/60),2,3):clamp(Math.round(5-number('density')/45),2,4);
     const points=[];
     for(let y=2;y<off.height-2;y+=step)for(let x=2+(Math.floor(y/step)%2)*Math.floor(step/2);x<off.width-2;x+=step){
       const p=(y*off.width+x)*4,alpha=pixels[p+3];
@@ -49,7 +49,14 @@
       const spread=isText?1.15:.58;
       const u=(x-off.width/2)/(w/2),v=(y-off.height/2)/(h/2);
       const curve=isText?0:Math.max(0,1-u*u-v*v)*24;
-      points.push({x:(x-off.width/2)*spread+jitterX,y:(off.height/2-y)*spread+jitterY,z:(bright/255-.5)*(isText?40:65)+curve,color:[r,g,b],seed});
+      const px=(x-off.width/2)*spread+jitterX,py=(off.height/2-y)*spread+jitterY;
+      if(isText){
+        // A thin volume gives letters the same layered, granular point texture as the sphere.
+        for(let layer=0;layer<3;layer++){
+          const grain=noise(seed+layer*997);
+          points.push({x:px+(grain-.5)*2.2,y:py+(noise(seed+layer*733)-.5)*2.2,z:(layer-1)*15+(noise(seed+layer*571)-.5)*9,color:[Math.round(150+grain*105),Math.round(150+grain*105),Math.round(150+grain*105)],seed:seed+layer*1000000});
+        }
+      }else points.push({x:px,y:py,z:(bright/255-.5)*65+curve,color:[r,g,b],seed});
     }
     state.points=points;
   }
@@ -120,9 +127,7 @@
   function paint(target,t){
     const ctx=target.getContext('2d',{alpha:false});
     const width=target.width,height=target.height;
-    ctx.fillStyle=state.source==='sphere'||state.source==='image'?'#000':'#05020b';ctx.fillRect(0,0,width,height);
-    const glow=ctx.createRadialGradient(width/2,height/2,0,width/2,height/2,Math.max(width,height)*.47);
-    glow.addColorStop(0,state.source==='sphere'||state.source==='image'?'rgba(0,0,0,0)':'rgba(71,30,120,.2)');glow.addColorStop(1,'rgba(4,2,10,0)');ctx.fillStyle=glow;ctx.fillRect(0,0,width,height);
+    ctx.fillStyle='#000';ctx.fillRect(0,0,width,height);
     const size=number('pointSize')*Math.min(width/650,height/450);
     const mode=controls.colorMode.value;
     const custom=controls.customColor.value;const customRgb=[1,3,5].map(i=>parseInt(custom.slice(i,i+2),16));
@@ -140,9 +145,9 @@
       else if(state.source==='sphere')color=[192,192,192];
       else color=[192,192,192];
       const luma=(point.color[0]*.2126+point.color[1]*.7152+point.color[2]*.0722)/255;
-      const alpha=(state.source==='sphere'?clamp(.32+(p.z+110)/240,.24,.92):state.source==='image'&&mode==='violet'?clamp(.08+luma*.9,.08,.98):clamp(.65+(p.z+160)/600,.45,1))*number('opacity');
+      const alpha=(state.source==='image'&&mode==='violet'?clamp(.08+luma*.9,.08,.98):clamp(.32+(p.z+110)/240,.24,.92))*number('opacity');
       ctx.fillStyle=`rgba(${color[0]},${color[1]},${color[2]},${alpha})`;
-      const radius=state.source==='sphere'||state.source==='image'?Math.max(.5,.8*number('pointSize')/1.4*Math.min(width/900,height/600)):Math.max(.5,size*clamp(p.scale,.65,1.6));
+      const radius=Math.max(.5,.8*number('pointSize')/1.4*Math.min(width/900,height/600));
       ctx.fillRect(p.x-radius/2,p.y-radius/2,radius,radius);
       if(state.source!=='sphere'&&markers.length<number('markerCount')&&i%Math.max(1,Math.floor(state.points.length/Math.max(1,number('markerCount'))))===0)markers.push({...p,world:[point.x,point.y,point.z]});
     }
@@ -154,9 +159,9 @@
       }
     }
     if(markers.length){
-      ctx.strokeStyle=state.source==='sphere'||state.source==='image'?'rgba(192,192,192,.18)':'rgba(192,192,192,.48)';ctx.lineWidth=Math.max(.5,width/1500);
+      ctx.strokeStyle='rgba(192,192,192,.18)';ctx.lineWidth=Math.max(.5,width/1500);
       if(controls.links.checked){ctx.beginPath();markers.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke()}
-      markers.forEach((p,i)=>{if(state.source==='sphere'||state.source==='image'){ctx.fillStyle='rgba(192,192,192,.75)';ctx.font=`${Math.max(6,width/145)}px monospace`;const xyz=p.world.map(v=>(v/155).toFixed(2));ctx.fillText(`${String(i+1).padStart(2,'0')} ${xyz.join(' ')}`,p.x+4,p.y-3);ctx.fillRect(p.x-1,p.y-1,2,2)}else{ctx.strokeStyle='rgba(192,192,192,.85)';ctx.strokeRect(p.x-5,p.y-5,10,10);ctx.fillStyle='rgba(210,210,210,.8)';ctx.font=`${Math.max(8,width/130)}px Manrope`;ctx.fillText(String(i+1).padStart(2,'0'),p.x+9,p.y-6)}})
+      markers.forEach((p,i)=>{ctx.fillStyle='rgba(192,192,192,.75)';ctx.font=`${Math.max(6,width/145)}px monospace`;const xyz=p.world.map(v=>(v/155).toFixed(2));ctx.fillText(`${String(i+1).padStart(2,'0')} ${xyz.join(' ')}`,p.x+4,p.y-3);ctx.fillRect(p.x-1,p.y-1,2,2)})
     }
     if(controls.frame.checked){const m=Math.min(width,height)*.035,L=m*.75;ctx.strokeStyle='rgba(177,143,218,.55)';ctx.lineWidth=Math.max(1,width/1100);ctx.beginPath();for(const [x,y,dx,dy] of [[m,m,1,1],[width-m,m,-1,1],[m,height-m,1,-1],[width-m,height-m,-1,-1]]){ctx.moveTo(x,y+dy*L);ctx.lineTo(x,y);ctx.lineTo(x+dx*L,y)}ctx.stroke();ctx.fillStyle='rgba(196,163,229,.8)';ctx.font=`${Math.max(9,width/120)}px Manrope`;ctx.fillText(`GEORGRAD  ·  ${state.points.length.toLocaleString()} PTS`,m,height-m-8)}
   }
@@ -235,3 +240,4 @@
 
   makeSphere();setSourceButtons();updatePlay();
 })();
+
