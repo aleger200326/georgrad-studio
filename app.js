@@ -104,7 +104,7 @@
     const cx=Math.cos(state.pitch),sx=Math.sin(state.pitch);
     const rx=x*cy+z*sy,rz=z*cy-x*sy;
     const ry=y*cx-rz*sx,depth=y*sx+rz*cx;
-    const scale=Math.min(width/520,height/350)*number('zoom')*410/(410-depth);
+    const scale=Math.min(width/520,height/350)*number('zoom')*(state.source==='sphere'?.84:1)*410/(410-depth);
     return {x:width/2+rx*scale,y:height/2-ry*scale,z:depth,scale};
   }
 
