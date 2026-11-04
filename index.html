@@ -16,20 +16,20 @@
       <div class="brand"><span class="brand-mark" aria-hidden="true">G</span><div><strong>GEORG<span>·</span>RAD</strong><small>POINT FIELD</small></div></div>
       <div class="topbar-actions">
         <label class="sr-only" for="language" data-i18n="language">Язык</label>
-        <select id="language" aria-label="Язык"><option value="ru">RU</option><option value="en">EN</option><option value="uz">UZ</option></select>
+        <select id="language" aria-label="Язык" data-i18n-aria="language"><option value="ru">RU</option><option value="en">EN</option><option value="uz">UZ</option></select>
         <button id="theme" class="icon-button" type="button" aria-label="Сменить тему"><span id="themeIcon" aria-hidden="true">☼</span><span id="themeText" data-i18n="lightTheme">Светлая</span></button>
         <a class="profile-link" href="https://t.me/georgdisegn" target="_blank" rel="noopener">TELEGRAM ↗</a>
       </div>
     </header>
 
     <main class="workspace">
-      <section class="preview" aria-label="Предпросмотр">
+      <section class="preview" aria-label="Предпросмотр" data-i18n-aria="preview">
         <div class="preview-heading"><div><h1 data-i18n="title">Редактор облака точек</h1><p data-i18n="subtitle">Картинка или текст превращаются в живую анимацию.</p></div><span class="live-pill"><i></i><span data-i18n="live">ПРЕДПРОСМОТР</span></span></div>
-        <div class="canvas-wrap"><canvas id="scene" aria-label="Анимация облака точек"></canvas><div class="canvas-hint" data-i18n="dragHint">Потяните сцену, чтобы изменить ракурс</div></div>
-        <div class="transport"><button id="play" class="transport-play" type="button" aria-label="Пауза">Ⅱ</button><span id="clock">0:00 / 0:06</span><input id="timeline" type="range" min="0" max="1000" value="0" aria-label="Время сцены"><button id="resetView" class="icon-button" type="button" data-i18n="resetView">Сбросить ракурс</button></div>
+        <div class="canvas-wrap"><canvas id="scene" aria-label="Анимация облака точек" data-i18n-aria="canvas"></canvas><div class="canvas-hint" data-i18n="dragHint">Потяните сцену, чтобы изменить ракурс</div></div>
+        <div class="transport"><button id="play" class="transport-play" type="button" aria-label="Пауза">Ⅱ</button><span id="clock">0:00 / 0:06</span><input id="timeline" type="range" min="0" max="1000" value="0" aria-label="Время сцены" data-i18n-aria="timeline"><button id="resetView" class="icon-button" type="button" data-i18n="resetView">Сбросить ракурс</button></div>
       </section>
 
-      <aside class="inspector" aria-label="Настройки">
+      <aside class="inspector" aria-label="Настройки" data-i18n-aria="settings">
         <div class="inspector-intro"><h2 data-i18n="settings">Настройки</h2><p data-i18n="settingsIntro">Соберите собственное движение точек и сохраните результат.</p></div>
 
         <details open><summary data-i18n="source">Источник</summary><div class="panel-body">

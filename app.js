@@ -32,7 +32,7 @@
     const w=image.width*scale,h=image.height*scale;
     c.drawImage(image,(520-w)/2,(260-h)/2,w,h);
     const pixels=c.getImageData(0,0,520,260).data;
-    const step=clamp(Math.round(12-number('density')/18),3,10);
+    const step=isText?clamp(Math.round(5-number('density')/45),2,4):clamp(Math.round(12-number('density')/18),3,10);
     const points=[];
     for(let y=2;y<258;y+=step)for(let x=2;x<518;x+=step){
       const p=(y*520+x)*4,alpha=pixels[p+3];
@@ -47,7 +47,7 @@
 
   function makeText(value){
     const off=document.createElement('canvas');off.width=1200;off.height=450;
-    const c=off.getContext('2d');c.font='800 150px Manrope, sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillStyle='#fff';
+    const c=off.getContext('2d');c.font='800 220px Manrope, sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillStyle='#fff';
     c.fillText(value||phrase('defaultText'),600,225,1120);
     pointsFromImage(off,true);
   }
