@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#151022">
+  <meta name="description" content="GEORGRAD Point Field — создавайте анимации из изображений и текста прямо в браузере.">
+  <title>GEORGRAD · Point Field</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">G</span><div><strong>GEORG<span>·</span>RAD</strong><small>POINT FIELD</small></div></div>
+      <div class="topbar-actions">
+        <label class="sr-only" for="language" data-i18n="language">Язык</label>
+        <select id="language" aria-label="Язык"><option value="ru">RU</option><option value="en">EN</option><option value="uz">UZ</option></select>
+        <button id="theme" class="icon-button" type="button" aria-label="Сменить тему"><span id="themeIcon" aria-hidden="true">☼</span><span id="themeText" data-i18n="lightTheme">Светлая</span></button>
+        <a class="profile-link" href="https://t.me/georgdisegn" target="_blank" rel="noopener">TELEGRAM ↗</a>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="preview" aria-label="Предпросмотр">
+        <div class="preview-heading"><div><h1 data-i18n="title">Редактор облака точек</h1><p data-i18n="subtitle">Картинка или текст превращаются в живую анимацию.</p></div><span class="live-pill"><i></i><span data-i18n="live">ПРЕДПРОСМОТР</span></span></div>
+        <div class="canvas-wrap"><canvas id="scene" aria-label="Анимация облака точек"></canvas><div class="canvas-hint" data-i18n="dragHint">Потяните сцену, чтобы изменить ракурс</div></div>
+        <div class="transport"><button id="play" class="transport-play" type="button" aria-label="Пауза">Ⅱ</button><span id="clock">0:00 / 0:06</span><input id="timeline" type="range" min="0" max="1000" value="0" aria-label="Время сцены"><button id="resetView" class="icon-button" type="button" data-i18n="resetView">Сбросить ракурс</button></div>
+      </section>
+
+      <aside class="inspector" aria-label="Настройки">
+        <div class="inspector-intro"><h2 data-i18n="settings">Настройки</h2><p data-i18n="settingsIntro">Соберите собственное движение точек и сохраните результат.</p></div>
+
+        <details open><summary data-i18n="source">Источник</summary><div class="panel-body">
+          <div class="source-tabs"><button type="button" data-source="sphere" class="selected" data-i18n="sphere">Сфера</button><button type="button" data-source="brand">GEORGRAD</button><button type="button" data-source="text" data-i18n="customText">Свой текст</button></div>
+          <label id="textRow" class="control vertical" hidden><span data-i18n="textLabel">Ваш текст</span><input id="textInput" type="text" maxlength="48" value="МОЙ ТЕКСТ" placeholder="Введите текст" data-i18n-placeholder="textPlaceholder"></label>
+          <label class="upload" for="imageInput"><span data-i18n="upload">Загрузить изображение</span><span>↑</span></label><input id="imageInput" type="file" accept="image/*" hidden>
+          <label class="control"><span data-i18n="density">Плотность</span><input id="density" type="range" min="40" max="150" value="90"><output for="density">90</output></label>
+          <label class="control"><span data-i18n="pointSize">Размер точки</span><input id="pointSize" type="range" min="1" max="4" step="0.1" value="1.8"><output for="pointSize">1.8</output></label>
+          <label class="control"><span data-i18n="depth">Глубина</span><input id="depth" type="range" min="0" max="2" step="0.1" value="1"><output for="depth">1.0</output></label>
+          <label class="control"><span data-i18n="pointColor">Цвет точек</span><select id="colorMode"><option value="violet" data-i18n="violet">Фиолетовый</option><option value="original" data-i18n="original">Цвет картинки</option><option value="white" data-i18n="white">Белый</option><option value="cyan" data-i18n="cyan">Циан</option></select></label>
+        </div></details>
+
+        <details open><summary data-i18n="animation">Анимация</summary><div class="panel-body">
+          <label class="control"><span data-i18n="scenario">Сценарий</span><select id="scenario"><option value="float" data-i18n="floating">Парение</option><option value="assemble" data-i18n="assemble">Сборка</option><option value="scatter" data-i18n="scatter">Разлёт</option><option value="cycle" data-i18n="cycle">Сборка и разлёт</option><option value="still" data-i18n="still">Статично</option></select></label>
+          <label class="control"><span data-i18n="duration">Длительность</span><input id="duration" type="range" min="2" max="15" step="0.5" value="6"><output for="duration">6 c</output></label>
+          <label class="control"><span data-i18n="scatterPower">Сила разлёта</span><input id="scatterPower" type="range" min="0" max="1" step="0.05" value="0.7"><output for="scatterPower">0.70</output></label>
+          <label class="control"><span data-i18n="floatPower">Парение</span><input id="floatPower" type="range" min="0" max="1" step="0.05" value="0.35"><output for="floatPower">0.35</output></label>
+          <label class="control"><span data-i18n="wind">Ветер</span><input id="wind" type="range" min="0" max="2" step="0.1" value="0.4"><output for="wind">0.4</output></label>
+          <label class="control"><span data-i18n="orbit">Облёт камеры</span><input id="orbit" type="range" min="0" max="1" step="0.05" value="0.2"><output for="orbit">0.20</output></label>
+        </div></details>
+
+        <details><summary data-i18n="effects">Эффекты</summary><div class="panel-body">
+          <label class="switch-row"><span data-i18n="pulse">Пульсация</span><input id="pulse" type="checkbox"><i></i></label>
+          <label class="switch-row"><span data-i18n="wave">Волны</span><input id="wave" type="checkbox"><i></i></label>
+          <label class="switch-row"><span data-i18n="turbulence">Турбулентность</span><input id="turbulence" type="checkbox"><i></i></label>
+          <label class="switch-row"><span data-i18n="scan">Скан-линия</span><input id="scan" type="checkbox"><i></i></label>
+          <label class="switch-row"><span data-i18n="magnet">Магнит</span><input id="magnet" type="checkbox"><i></i></label>
+        </div></details>
+
+        <details><summary data-i18n="camera">Камера</summary><div class="panel-body">
+          <div class="camera-grid"><button type="button" data-view="front" data-i18n="front">Фронт</button><button type="button" data-view="left" data-i18n="left">Слева</button><button type="button" data-view="right" data-i18n="right">Справа</button><button type="button" data-view="top" data-i18n="top">Сверху</button></div>
+          <label class="control"><span data-i18n="zoom">Приближение</span><input id="zoom" type="range" min="0.6" max="2.5" step="0.05" value="1"><output for="zoom">1.00×</output></label>
+        </div></details>
+
+        <details><summary data-i18n="markers">Трек-точки</summary><div class="panel-body">
+          <label class="control"><span data-i18n="markerCount">Количество</span><input id="markerCount" type="range" min="0" max="30" value="8"><output for="markerCount">8</output></label>
+          <label class="switch-row"><span data-i18n="links">Связи между точками</span><input id="links" type="checkbox" checked><i></i></label>
+          <label class="switch-row"><span data-i18n="frame">Рамка кадра</span><input id="frame" type="checkbox" checked><i></i></label>
+        </div></details>
+
+        <details open><summary data-i18n="export">Экспорт</summary><div class="panel-body">
+          <label class="control"><span data-i18n="format">Формат</span><select id="format"><option value="1080x1920">9:16 · 1080×1920</option><option value="1080x1350">4:5 · 1080×1350</option><option value="1080x1080">1:1 · 1080×1080</option><option value="1920x1080">16:9 · 1920×1080</option></select></label>
+          <label class="control"><span data-i18n="fps">Кадров/с</span><select id="fps"><option value="24">24</option><option value="30" selected>30</option><option value="60">60</option></select></label>
+          <div class="export-actions"><button id="exportVideo" type="button" data-i18n="downloadVideo">Скачать MP4</button><button id="exportGif" type="button" data-i18n="downloadGif">Скачать GIF</button></div>
+          <div class="progress-track"><i id="progress"></i></div><p id="status" role="status" data-i18n="ready">Готово к экспорту. Все файлы создаются в браузере.</p><a id="downloadFallback" hidden data-i18n="downloadAgain">Скачать файл ещё раз</a>
+        </div></details>
+      </aside>
+    </main>
+  </div>
+  <script src="vendor/mp4-muxer.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
