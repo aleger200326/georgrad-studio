@@ -47,3 +47,6 @@ html,body{height:100%;overflow:hidden}
 :root[data-theme=light] .theme-switch .moon{background:none;color:#555}
 .transport .icon-button::after{color:#c0c0c0}
 .inspector .switch-row input:checked+i{background:#c0c0c0}
+.brand-telegram{margin-left:18px;padding:6px 9px;border:1px solid #555;border-radius:7px;color:#d8d8d8;font-size:11px;font-weight:700;text-decoration:none;line-height:1;white-space:nowrap}.brand-telegram:hover{background:#303030;border-color:#c0c0c0;color:#fff}:root[data-theme=light] .brand-telegram{color:#333;border-color:#aaa}:root[data-theme=light] .brand-telegram:hover{background:#e1e1e1}
+@media(max-width:700px){.brand small{display:none}.brand-telegram{margin-left:8px;padding:5px 6px;font-size:9px}}
+
