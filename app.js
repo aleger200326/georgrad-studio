@@ -95,7 +95,7 @@
     z+=(noise(seed+33)-.5)*scatter*190;
     x+=Math.sin(phase+y*.01)*number('wind')*12;
     if(controls.pulse.checked){const k=1+.08*Math.sin(phase*3+Math.hypot(x,y)*.026);x*=k;y*=k;z*=k}
-    if(controls.scenario.value==='wave'){const w=Math.sin(y*.024+x*.01-phase*2);z+=w*38*number('amplitude');x+=w*5*number('amplitude')}
+    if(controls.scenario.value==='wave'&&state.source!=='sphere'){const w=Math.sin(y*.024+x*.01-phase*2);z+=w*38*number('amplitude');x+=w*5*number('amplitude')}
     if(controls.wave.checked)z+=18*Math.sin(Math.hypot(x,y)*.05-phase*3);
     if(controls.turbulence.checked){x+=Math.sin(y*.04+phase*2+seed*.01)*10;y+=Math.cos(x*.04-phase*2)*10}
     if(controls.magnet.checked){const mx=Math.sin(phase)*95,my=Math.cos(phase*2)*65;const dx=x-mx,dy=y-my,d=Math.hypot(dx,dy);if(d<85){const k=(1-d/85)*25;x+=dx/(d||1)*k;y+=dy/(d||1)*k}}
