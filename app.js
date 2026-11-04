@@ -134,8 +134,8 @@
       else if(mode==='white')color=[238,230,255];
       else if(mode==='cyan')color=[80,229,242];
       else if(mode==='custom')color=customRgb;
-      else if(state.source==='sphere')color=[235,240,245];
-      else color=[154,77,255];
+      else if(state.source==='sphere')color=[192,192,192];
+      else color=[192,192,192];
       const alpha=(state.source==='sphere'?clamp(.32+(p.z+110)/240,.24,.92):clamp(.65+(p.z+160)/600,.45,1))*number('opacity');
       ctx.fillStyle=`rgba(${color[0]},${color[1]},${color[2]},${alpha})`;
       const radius=state.source==='sphere'?Math.max(.5,.8*number('pointSize')/1.4*Math.min(width/900,height/600)):Math.max(.5,size*clamp(p.scale,.65,1.6));
@@ -150,9 +150,9 @@
       }
     }
     if(markers.length){
-      ctx.strokeStyle=state.source==='sphere'?'rgba(220,230,238,.15)':'rgba(194,151,255,.48)';ctx.lineWidth=Math.max(.5,width/1500);
+      ctx.strokeStyle=state.source==='sphere'?'rgba(192,192,192,.18)':'rgba(192,192,192,.48)';ctx.lineWidth=Math.max(.5,width/1500);
       if(controls.links.checked){ctx.beginPath();markers.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke()}
-      markers.forEach((p,i)=>{if(state.source==='sphere'){ctx.fillStyle='rgba(235,241,245,.65)';ctx.font=`${Math.max(6,width/145)}px monospace`;const xyz=p.world.map(v=>(v/155).toFixed(2));ctx.fillText(`${String(i+1).padStart(2,'0')} ${xyz.join(' ')}`,p.x+4,p.y-3);ctx.fillRect(p.x-1,p.y-1,2,2)}else{ctx.strokeStyle='rgba(221,191,255,.85)';ctx.strokeRect(p.x-5,p.y-5,10,10);ctx.fillStyle='rgba(238,221,255,.8)';ctx.font=`${Math.max(8,width/130)}px Manrope`;ctx.fillText(String(i+1).padStart(2,'0'),p.x+9,p.y-6)}})
+      markers.forEach((p,i)=>{if(state.source==='sphere'){ctx.fillStyle='rgba(192,192,192,.75)';ctx.font=`${Math.max(6,width/145)}px monospace`;const xyz=p.world.map(v=>(v/155).toFixed(2));ctx.fillText(`${String(i+1).padStart(2,'0')} ${xyz.join(' ')}`,p.x+4,p.y-3);ctx.fillRect(p.x-1,p.y-1,2,2)}else{ctx.strokeStyle='rgba(192,192,192,.85)';ctx.strokeRect(p.x-5,p.y-5,10,10);ctx.fillStyle='rgba(210,210,210,.8)';ctx.font=`${Math.max(8,width/130)}px Manrope`;ctx.fillText(String(i+1).padStart(2,'0'),p.x+9,p.y-6)}})
     }
     if(controls.frame.checked){const m=Math.min(width,height)*.035,L=m*.75;ctx.strokeStyle='rgba(177,143,218,.55)';ctx.lineWidth=Math.max(1,width/1100);ctx.beginPath();for(const [x,y,dx,dy] of [[m,m,1,1],[width-m,m,-1,1],[m,height-m,1,-1],[width-m,height-m,-1,-1]]){ctx.moveTo(x,y+dy*L);ctx.lineTo(x,y);ctx.lineTo(x+dx*L,y)}ctx.stroke();ctx.fillStyle='rgba(196,163,229,.8)';ctx.font=`${Math.max(9,width/120)}px Manrope`;ctx.fillText(`GEORGRAD  ·  ${state.points.length.toLocaleString()} PTS`,m,height-m-8)}
   }

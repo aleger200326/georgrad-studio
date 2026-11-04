@@ -8,7 +8,7 @@
   <title>GEORGRAD · Point Field</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
   <div class="app-shell">
@@ -49,8 +49,8 @@
 
         <details open class="primary-card"><summary data-i18n="animation">Анимация</summary><div class="panel-body">
           <label class="control"><span data-i18n="scenario">Тип</span><select id="scenario"><option value="wave" data-i18n="waveType">Волна</option><option value="float" data-i18n="floating">Парение</option><option value="assemble" data-i18n="assemble">Сборка</option><option value="scatter" data-i18n="scatter">Разлёт</option><option value="cycle" data-i18n="cycle">Сборка и разлёт</option><option value="still" data-i18n="still">Статично</option></select></label>
-          <label class="control"><span data-i18n="speed">Скорость</span><input id="speed" type="range" min="1" max="4" step="1" value="1"><output for="speed">1.00</output></label>
-          <label class="control"><span data-i18n="amplitude">Амплитуда</span><input id="amplitude" type="range" min="0" max="1" step="0.05" value="0.7"><output for="amplitude">0.70</output></label>
+          <label class="control"><span data-i18n="speed">Скорость</span><input id="speed" type="range" min="0" max="4" step="1" value="0"><output for="speed">0.00</output></label>
+          <label class="control"><span data-i18n="amplitude">Амплитуда</span><input id="amplitude" type="range" min="0" max="1" step="0.05" value="0"><output for="amplitude">0.00</output></label>
           <label class="control"><span data-i18n="duration">Длительность</span><input id="duration" type="range" min="2" max="15" step="0.5" value="8"><output for="duration">8 c</output></label>
           <label class="control"><span data-i18n="scatterPower">Сила разлёта</span><input id="scatterPower" type="range" min="0" max="1" step="0.05" value="0.7"><output for="scatterPower">0.70</output></label>
           <label class="control"><span data-i18n="floatPower">Парение</span><input id="floatPower" type="range" min="0" max="1" step="0.05" value="0.35"><output for="floatPower">0.35</output></label>
@@ -60,7 +60,7 @@
 
         <details open class="primary-card"><summary data-i18n="color">Цвет</summary><div class="panel-body">
           <label class="control"><span data-i18n="mode">Режим</span><select id="colorMode"><option value="violet" data-i18n="monochrome">Монохром</option><option value="original" data-i18n="original">Цвет картинки</option><option value="white" data-i18n="white">Белый</option><option value="cyan" data-i18n="cyan">Циан</option><option value="custom" data-i18n="customColor">Свой цвет</option></select></label>
-          <label class="control color-control"><span data-i18n="pointColor">Цвет</span><input id="customColor" type="color" value="#9a4dff"><input id="colorHex" type="text" value="#9A4DFF" maxlength="7" aria-label="HEX цвет"></label>
+          <label class="control color-control"><span data-i18n="pointColor">Цвет</span><input id="customColor" type="color" value="#c0c0c0"><input id="colorHex" type="text" value="#C0C0C0" maxlength="7" aria-label="HEX цвет"></label>
         </div></details>
 
         <details class="advanced-settings"><summary data-i18n="advanced">Дополнительно</summary><div class="panel-body" id="advancedBody"><a href="https://t.me/georgdisegn" target="_blank" rel="noopener">Telegram ↗</a></div></details>
@@ -95,6 +95,6 @@
   </div>
   <script src="vendor/mp4-muxer.js"></script>
   <script src="i18n.js?v=5"></script>
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>
