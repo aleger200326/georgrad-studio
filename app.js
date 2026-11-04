@@ -3,7 +3,7 @@
   const canvas = $('scene');
   const screen = canvas.getContext('2d', {alpha:false});
   const controls = Object.fromEntries(['density','pointSize','opacity','depth','colorMode','customColor','scenario','speed','amplitude','duration','scatterPower','floatPower','wind','orbit','pulse','wave','turbulence','scan','magnet','zoom','markerCount','links','frame','format','fps'].map(id=>[id,$(id)]));
-  const state = {source:'sphere',points:[],yaw:0,pitch:0,time:0,playing:true,last:performance.now(),busy:false,seed:19};
+  const state = {source:'sphere',points:[],image:null,yaw:0,pitch:0,time:0,playing:true,last:performance.now(),busy:false,seed:19};
   const TAU = Math.PI*2;
   const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
   const number=id=>Number(controls[id].value);
@@ -32,22 +32,24 @@
   }
 
   function pointsFromImage(image,isText=false){
-    const off=document.createElement('canvas');off.width=520;off.height=260;
-    const c=off.getContext('2d',{willReadFrequently:true});c.clearRect(0,0,520,260);
-    const scale=Math.min(480/image.width,220/image.height);
+    const off=document.createElement('canvas');off.width=520;off.height=isText?260:520;
+    const c=off.getContext('2d',{willReadFrequently:true});c.clearRect(0,0,off.width,off.height);
+    const scale=Math.min(480/image.width,(isText?220:480)/image.height);
     const w=image.width*scale,h=image.height*scale;
-    c.drawImage(image,(520-w)/2,(260-h)/2,w,h);
-    const pixels=c.getImageData(0,0,520,260).data;
-    const step=isText?clamp(Math.round(5-number('density')/45),2,4):clamp(Math.round(12-number('density')/18),3,10);
+    c.drawImage(image,(off.width-w)/2,(off.height-h)/2,w,h);
+    const pixels=c.getImageData(0,0,off.width,off.height).data;
+    const step=clamp(Math.round(5-number('density')/45),2,4);
     const points=[];
-    for(let y=2;y<258;y+=step)for(let x=2;x<518;x+=step){
-      const p=(y*520+x)*4,alpha=pixels[p+3];
+    for(let y=2;y<off.height-2;y+=step)for(let x=2;x<off.width-2;x+=step){
+      const p=(y*off.width+x)*4,alpha=pixels[p+3];
       if(alpha<75)continue;
       const r=pixels[p],g=pixels[p+1],b=pixels[p+2],bright=(r+g+b)/3;
       if(isText&&bright<45)continue;
-      const jitter=(noise(x*1000+y)-.5)*step*.55;
-      const spread=isText?1.15:.62;
-      points.push({x:(x-260)*spread+jitter,y:(130-y)*spread,z:(bright/255-.5)*40, color:[r,g,b],seed:y*520+x});
+      const seed=y*off.width+x,jitter=(noise(seed)-.5)*step*.3;
+      const spread=isText?1.15:.58;
+      const u=(x-off.width/2)/(w/2),v=(y-off.height/2)/(h/2);
+      const curve=isText?0:Math.max(0,1-u*u-v*v)*24;
+      points.push({x:(x-off.width/2)*spread+jitter,y:(off.height/2-y)*spread+jitter,z:(bright/255-.5)*(isText?40:65)+curve,color:[r,g,b],seed});
     }
     state.points=points;
   }
@@ -63,7 +65,8 @@
     if(!file||!file.type.startsWith('image/'))return;
     try{
       const image=await createImageBitmap(file);
-      state.source='image';setSourceButtons();pointsFromImage(image);image.close();
+      if(state.image)state.image.close();
+      state.image=image;state.source='image';setSourceButtons();pointsFromImage(image);
     }catch{setStatus(phrase('imageError'))}
   }
 
@@ -77,7 +80,7 @@
   $('imageInput').addEventListener('change',e=>loadImage(e.target.files[0]));
   let textTimer;
   $('textInput').addEventListener('input',()=>{clearTimeout(textTimer);textTimer=setTimeout(()=>{if(state.source==='text')makeText($('textInput').value.trim())},170)});
-  controls.density.addEventListener('change',()=>{if(state.source==='sphere')makeSphere();else if(state.source==='brand')makeText('GEORGRAD');else if(state.source==='text')makeText($('textInput').value.trim())});
+  controls.density.addEventListener('change',()=>{if(state.source==='sphere')makeSphere();else if(state.source==='brand')makeText('GEORGRAD');else if(state.source==='text')makeText($('textInput').value.trim());else if(state.source==='image'&&state.image)pointsFromImage(state.image)});
 
   function scatterAmount(t){
     const phase=t/number('duration');const power=number('scatterPower');
@@ -136,11 +139,12 @@
       else if(mode==='custom')color=customRgb;
       else if(state.source==='sphere')color=[192,192,192];
       else color=[192,192,192];
-      const alpha=(state.source==='sphere'?clamp(.32+(p.z+110)/240,.24,.92):clamp(.65+(p.z+160)/600,.45,1))*number('opacity');
+      const luma=(point.color[0]*.2126+point.color[1]*.7152+point.color[2]*.0722)/255;
+      const alpha=(state.source==='sphere'?clamp(.32+(p.z+110)/240,.24,.92):state.source==='image'&&mode==='violet'?clamp(.08+luma*.9,.08,.98):clamp(.65+(p.z+160)/600,.45,1))*number('opacity');
       ctx.fillStyle=`rgba(${color[0]},${color[1]},${color[2]},${alpha})`;
-      const radius=state.source==='sphere'?Math.max(.5,.8*number('pointSize')/1.4*Math.min(width/900,height/600)):Math.max(.5,size*clamp(p.scale,.65,1.6));
+      const radius=state.source==='sphere'||state.source==='image'?Math.max(.5,.8*number('pointSize')/1.4*Math.min(width/900,height/600)):Math.max(.5,size*clamp(p.scale,.65,1.6));
       ctx.fillRect(p.x-radius/2,p.y-radius/2,radius,radius);
-      if(state.source!=='sphere'&&markers.length<number('markerCount')&&i%Math.max(1,Math.floor(state.points.length/Math.max(1,number('markerCount'))))===0)markers.push(p);
+      if(state.source!=='sphere'&&markers.length<number('markerCount')&&i%Math.max(1,Math.floor(state.points.length/Math.max(1,number('markerCount'))))===0)markers.push({...p,world:[point.x,point.y,point.z]});
     }
     if(state.source==='sphere'&&number('markerCount')){
       const anchors=[[-93,52,15],[-24,113,8],[70,100,-4],[101,24,22],[85,-66,3],[18,-115,12],[-72,-97,0],[-105,-17,30],[0,10,85]];
@@ -150,9 +154,9 @@
       }
     }
     if(markers.length){
-      ctx.strokeStyle=state.source==='sphere'?'rgba(192,192,192,.18)':'rgba(192,192,192,.48)';ctx.lineWidth=Math.max(.5,width/1500);
+      ctx.strokeStyle=state.source==='sphere'||state.source==='image'?'rgba(192,192,192,.18)':'rgba(192,192,192,.48)';ctx.lineWidth=Math.max(.5,width/1500);
       if(controls.links.checked){ctx.beginPath();markers.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke()}
-      markers.forEach((p,i)=>{if(state.source==='sphere'){ctx.fillStyle='rgba(192,192,192,.75)';ctx.font=`${Math.max(6,width/145)}px monospace`;const xyz=p.world.map(v=>(v/155).toFixed(2));ctx.fillText(`${String(i+1).padStart(2,'0')} ${xyz.join(' ')}`,p.x+4,p.y-3);ctx.fillRect(p.x-1,p.y-1,2,2)}else{ctx.strokeStyle='rgba(192,192,192,.85)';ctx.strokeRect(p.x-5,p.y-5,10,10);ctx.fillStyle='rgba(210,210,210,.8)';ctx.font=`${Math.max(8,width/130)}px Manrope`;ctx.fillText(String(i+1).padStart(2,'0'),p.x+9,p.y-6)}})
+      markers.forEach((p,i)=>{if(state.source==='sphere'||state.source==='image'){ctx.fillStyle='rgba(192,192,192,.75)';ctx.font=`${Math.max(6,width/145)}px monospace`;const xyz=p.world.map(v=>(v/155).toFixed(2));ctx.fillText(`${String(i+1).padStart(2,'0')} ${xyz.join(' ')}`,p.x+4,p.y-3);ctx.fillRect(p.x-1,p.y-1,2,2)}else{ctx.strokeStyle='rgba(192,192,192,.85)';ctx.strokeRect(p.x-5,p.y-5,10,10);ctx.fillStyle='rgba(210,210,210,.8)';ctx.font=`${Math.max(8,width/130)}px Manrope`;ctx.fillText(String(i+1).padStart(2,'0'),p.x+9,p.y-6)}})
     }
     if(controls.frame.checked){const m=Math.min(width,height)*.035,L=m*.75;ctx.strokeStyle='rgba(177,143,218,.55)';ctx.lineWidth=Math.max(1,width/1100);ctx.beginPath();for(const [x,y,dx,dy] of [[m,m,1,1],[width-m,m,-1,1],[m,height-m,1,-1],[width-m,height-m,-1,-1]]){ctx.moveTo(x,y+dy*L);ctx.lineTo(x,y);ctx.lineTo(x+dx*L,y)}ctx.stroke();ctx.fillStyle='rgba(196,163,229,.8)';ctx.font=`${Math.max(9,width/120)}px Manrope`;ctx.fillText(`GEORGRAD  ·  ${state.points.length.toLocaleString()} PTS`,m,height-m-8)}
   }
