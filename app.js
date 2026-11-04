@@ -12,7 +12,7 @@
   const noise=n=>{const s=Math.sin(n*127.1+state.seed*3.7)*43758.5453;return s-Math.floor(s)};
 
   function makeSphere(){
-    const count=Math.round(number('density')*190);
+    const count=Math.round(number('density')*290);
     const points=[];
     for(let i=0;i<count;i++){
       const y=1-2*(i+.5)/count;
@@ -134,9 +134,9 @@
       else if(mode==='custom')color=customRgb;
       else if(state.source==='sphere')color=[235,240,245];
       else color=[154,77,255];
-      const alpha=(state.source==='sphere'?clamp(.18+(p.z+110)/320,.12,.72):clamp(.65+(p.z+160)/600,.45,1))*number('opacity');
+      const alpha=(state.source==='sphere'?clamp(.32+(p.z+110)/240,.24,.92):clamp(.65+(p.z+160)/600,.45,1))*number('opacity');
       ctx.fillStyle=`rgba(${color[0]},${color[1]},${color[2]},${alpha})`;
-      const radius=state.source==='sphere'?Math.max(.45,.7*number('pointSize')/1.4*Math.min(width/900,height/600)):Math.max(.5,size*clamp(p.scale,.65,1.6));
+      const radius=state.source==='sphere'?Math.max(.5,.8*number('pointSize')/1.4*Math.min(width/900,height/600)):Math.max(.5,size*clamp(p.scale,.65,1.6));
       ctx.fillRect(p.x-radius/2,p.y-radius/2,radius,radius);
       if(state.source!=='sphere'&&markers.length<number('markerCount')&&i%Math.max(1,Math.floor(state.points.length/Math.max(1,number('markerCount'))))===0)markers.push(p);
     }
