@@ -2,7 +2,7 @@
   const $ = id => document.getElementById(id);
   const canvas = $('scene');
   const screen = canvas.getContext('2d', {alpha:false});
-  const controls = Object.fromEntries(['density','pointSize','depth','colorMode','scenario','duration','scatterPower','floatPower','wind','orbit','pulse','wave','turbulence','scan','magnet','zoom','markerCount','links','frame','format','fps'].map(id=>[id,$(id)]));
+  const controls = Object.fromEntries(['density','pointSize','opacity','depth','colorMode','customColor','scenario','speed','amplitude','duration','scatterPower','floatPower','wind','orbit','pulse','wave','turbulence','scan','magnet','zoom','markerCount','links','frame','format','fps'].map(id=>[id,$(id)]));
   const state = {source:'sphere',points:[],yaw:0,pitch:0,time:0,playing:true,last:performance.now(),busy:false,seed:19};
   const TAU = Math.PI*2;
   const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
@@ -61,7 +61,8 @@
     }catch{setStatus(phrase('imageError'))}
   }
 
-  function setSourceButtons(){document.querySelectorAll('[data-source]').forEach(button=>button.classList.toggle('selected',button.dataset.source===state.source));$('textRow').hidden=state.source!=='text'}
+  function setSourceButtons(){document.querySelectorAll('[data-source]').forEach(button=>button.classList.toggle('selected',button.dataset.source===state.source));$('sourceSelect').value=state.source;document.body.dataset.source=state.source;$('textRow').hidden=state.source!=='text'}
+  $('sourceSelect').addEventListener('change',e=>{const source=e.target.value;if(source==='image'){$('imageInput').click();e.target.value=state.source;return}state.source=source;setSourceButtons();if(source==='sphere')makeSphere();else makeText(source==='brand'?'GEORGRAD':$('textInput').value.trim())});
   document.querySelectorAll('[data-source]').forEach(button=>button.addEventListener('click',()=>{
     state.source=button.dataset.source;setSourceButtons();
     if(state.source==='sphere')makeSphere();
@@ -82,7 +83,7 @@
     }
   }
   function project(point,t,width,height){
-    const phase=t/number('duration')*TAU,seed=point.seed;
+    const phase=t/number('duration')*TAU*number('speed'),seed=point.seed;
     const still=controls.scenario.value==='still';
     const f=still?0:number('floatPower');
     let x=point.x+Math.sin(phase+seed*.013)*f*7;
@@ -94,6 +95,7 @@
     z+=(noise(seed+33)-.5)*scatter*190;
     x+=Math.sin(phase+y*.01)*number('wind')*12;
     if(controls.pulse.checked){const k=1+.08*Math.sin(phase*3+Math.hypot(x,y)*.026);x*=k;y*=k;z*=k}
+    if(controls.scenario.value==='wave'){const w=Math.sin(y*.024+x*.01-phase*2);z+=w*38*number('amplitude');x+=w*5*number('amplitude')}
     if(controls.wave.checked)z+=18*Math.sin(Math.hypot(x,y)*.05-phase*3);
     if(controls.turbulence.checked){x+=Math.sin(y*.04+phase*2+seed*.01)*10;y+=Math.cos(x*.04-phase*2)*10}
     if(controls.magnet.checked){const mx=Math.sin(phase)*95,my=Math.cos(phase*2)*65;const dx=x-mx,dy=y-my,d=Math.hypot(dx,dy);if(d<85){const k=(1-d/85)*25;x+=dx/(d||1)*k;y+=dy/(d||1)*k}}
@@ -114,6 +116,7 @@
     glow.addColorStop(0,'rgba(71,30,120,.2)');glow.addColorStop(1,'rgba(4,2,10,0)');ctx.fillStyle=glow;ctx.fillRect(0,0,width,height);
     const size=number('pointSize')*Math.min(width/650,height/450);
     const mode=controls.colorMode.value;
+    const custom=controls.customColor.value;const customRgb=[1,3,5].map(i=>parseInt(custom.slice(i,i+2),16));
     const scanY=height*(t/number('duration'));
     const markers=[];
     for(let i=0;i<state.points.length;i++){
@@ -124,8 +127,9 @@
       if(mode==='original')color=point.color;
       else if(mode==='white')color=[238,230,255];
       else if(mode==='cyan')color=[80,229,242];
-      else color=[176,110,255];
-      const alpha=clamp(.65+(p.z+160)/600,.45,1);
+      else if(mode==='custom')color=customRgb;
+      else color=[154,77,255];
+      const alpha=clamp(.65+(p.z+160)/600,.45,1)*number('opacity');
       ctx.fillStyle=`rgba(${color[0]},${color[1]},${color[2]},${alpha})`;
       const radius=Math.max(.5,size*clamp(p.scale,.65,1.6));
       ctx.fillRect(p.x-radius/2,p.y-radius/2,radius,radius);
@@ -155,12 +159,15 @@
   canvas.addEventListener('pointerup',()=>pointer=null);
   canvas.addEventListener('dblclick',()=>{state.yaw=0;state.pitch=0});
 
-  function updateOutput(input){const out=document.querySelector(`output[for="${input.id}"]`);if(!out)return;const n=Number(input.value);out.textContent=input.id==='duration'?`${n} ${currentLanguage==='ru'?'с':'s'}`:input.id==='zoom'?`${n.toFixed(2)}×`:['pointSize','depth','scatterPower','floatPower','wind','orbit'].includes(input.id)?n.toFixed(input.id==='pointSize'||input.id==='depth'||input.id==='wind'?1:2):String(n)}
+  function updateOutput(input){const out=document.querySelector(`output[for="${input.id}"]`);if(!out)return;const n=Number(input.value);out.textContent=input.id==='duration'?`${n} ${currentLanguage==='ru'?'с':'s'}`:input.id==='zoom'?`${n.toFixed(2)}×`:['pointSize','depth','scatterPower','floatPower','wind','orbit','opacity','speed','amplitude'].includes(input.id)?n.toFixed(['pointSize','depth','wind'].includes(input.id)?1:2):String(n)}
   document.querySelectorAll('input[type="range"]').forEach(input=>{if(input.id!=='timeline'){input.addEventListener('input',()=>updateOutput(input));updateOutput(input)}});
   document.addEventListener('georgrad:language',()=>{updatePlay();document.querySelectorAll('input[type="range"]').forEach(updateOutput);updateThemeButton()});
 
   let theme='dark';try{theme=localStorage.getItem('georgrad-theme')==='light'?'light':'dark'}catch{}
-  function updateThemeButton(){document.documentElement.dataset.theme=theme;$('themeText').textContent=phrase(theme==='dark'?'lightTheme':'darkTheme');$('theme').setAttribute('aria-label',phrase(theme==='dark'?'lightTheme':'darkTheme'));$('themeIcon').textContent=theme==='dark'?'☼':'☾'}
+  function updateThemeButton(){document.documentElement.dataset.theme=theme;$('themeText').textContent=phrase(theme==='dark'?'lightTheme':'darkTheme');$('theme').setAttribute('aria-label',phrase(theme==='dark'?'lightTheme':'darkTheme'))}
+  controls.customColor.addEventListener('input',()=>{$('colorHex').value=controls.customColor.value.toUpperCase();controls.colorMode.value='custom'});
+  $('colorHex').addEventListener('change',e=>{const value=e.target.value.trim();if(/^#[0-9a-f]{6}$/i.test(value)){controls.customColor.value=value;controls.colorMode.value='custom'}e.target.value=controls.customColor.value.toUpperCase()});
+  for(const id of ['depth','duration','scatterPower','floatPower','wind','orbit'])$('advancedBody').append(controls[id].closest('.control'));
   $('theme').addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';try{localStorage.setItem('georgrad-theme',theme)}catch{}updateThemeButton()});updateThemeButton();
 
   function setStatus(text){$('status').textContent=text}
