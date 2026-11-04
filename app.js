@@ -128,7 +128,6 @@
     const ctx=target.getContext('2d',{alpha:false});
     const width=target.width,height=target.height;
     ctx.fillStyle='#000';ctx.fillRect(0,0,width,height);
-    const size=number('pointSize')*Math.min(width/650,height/450);
     const mode=controls.colorMode.value;
     const custom=controls.customColor.value;const customRgb=[1,3,5].map(i=>parseInt(custom.slice(i,i+2),16));
     const scanY=height*(t/number('duration'));
