@@ -15,12 +15,16 @@
     const count=Math.round(number('density')*190);
     const points=[];
     for(let i=0;i<count;i++){
-      const v=1-2*(i+.5)/count;
-      const radius=Math.sqrt(1-v*v);
+      const y=1-2*(i+.5)/count;
+      const ring=Math.sqrt(1-y*y);
       const angle=i*2.399963229728653;
-      const x=Math.cos(angle)*radius,y=v,z=Math.sin(angle)*radius;
-      const light=clamp(.58+.32*(-x+y*.5+z),.25,1);
-      points.push({x:x*150,y:y*150,z:z*150,color:[Math.round(155*light),Math.round(95*light),Math.round(245*light)],seed:i});
+      const layer=.25+.75*Math.sqrt(noise(i+381));
+      const twist=.24*Math.sin(y*5+angle*.12);
+      const x=(Math.cos(angle+twist)*ring*layer+Math.sin(y*8)*.07)*105;
+      const z=(Math.sin(angle+twist)*ring*layer+Math.cos(y*7)*.06)*90;
+      const yy=(y*layer+Math.sin(angle*2+y*6)*.025)*155;
+      const shade=.55+.45*noise(i+43);
+      points.push({x,y:yy,z,color:[Math.round(255*shade),Math.round(255*shade),Math.round(255*shade)],seed:i});
     }
     state.points=points;
   }
@@ -95,7 +99,7 @@
     z+=(noise(seed+33)-.5)*scatter*190;
     x+=Math.sin(phase+y*.01)*number('wind')*12;
     if(controls.pulse.checked){const k=1+.08*Math.sin(phase*3+Math.hypot(x,y)*.026);x*=k;y*=k;z*=k}
-    if(controls.scenario.value==='wave'&&state.source!=='sphere'){const w=Math.sin(y*.024+x*.01-phase*2);z+=w*38*number('amplitude');x+=w*5*number('amplitude')}
+    if(controls.scenario.value==='wave'){const w=Math.sin(y*.024+x*.01-phase*2);z+=w*(state.source==='sphere'?7:38)*number('amplitude');x+=w*(state.source==='sphere'?1:5)*number('amplitude')}
     if(controls.wave.checked)z+=18*Math.sin(Math.hypot(x,y)*.05-phase*3);
     if(controls.turbulence.checked){x+=Math.sin(y*.04+phase*2+seed*.01)*10;y+=Math.cos(x*.04-phase*2)*10}
     if(controls.magnet.checked){const mx=Math.sin(phase)*95,my=Math.cos(phase*2)*65;const dx=x-mx,dy=y-my,d=Math.hypot(dx,dy);if(d<85){const k=(1-d/85)*25;x+=dx/(d||1)*k;y+=dy/(d||1)*k}}
@@ -111,9 +115,9 @@
   function paint(target,t){
     const ctx=target.getContext('2d',{alpha:false});
     const width=target.width,height=target.height;
-    ctx.fillStyle='#05020b';ctx.fillRect(0,0,width,height);
+    ctx.fillStyle=state.source==='sphere'?'#000':'#05020b';ctx.fillRect(0,0,width,height);
     const glow=ctx.createRadialGradient(width/2,height/2,0,width/2,height/2,Math.max(width,height)*.47);
-    glow.addColorStop(0,'rgba(71,30,120,.2)');glow.addColorStop(1,'rgba(4,2,10,0)');ctx.fillStyle=glow;ctx.fillRect(0,0,width,height);
+    glow.addColorStop(0,state.source==='sphere'?'rgba(0,0,0,0)':'rgba(71,30,120,.2)');glow.addColorStop(1,'rgba(4,2,10,0)');ctx.fillStyle=glow;ctx.fillRect(0,0,width,height);
     const size=number('pointSize')*Math.min(width/650,height/450);
     const mode=controls.colorMode.value;
     const custom=controls.customColor.value;const customRgb=[1,3,5].map(i=>parseInt(custom.slice(i,i+2),16));
@@ -128,17 +132,25 @@
       else if(mode==='white')color=[238,230,255];
       else if(mode==='cyan')color=[80,229,242];
       else if(mode==='custom')color=customRgb;
+      else if(state.source==='sphere')color=[235,240,245];
       else color=[154,77,255];
-      const alpha=clamp(.65+(p.z+160)/600,.45,1)*number('opacity');
+      const alpha=(state.source==='sphere'?clamp(.18+(p.z+110)/320,.12,.72):clamp(.65+(p.z+160)/600,.45,1))*number('opacity');
       ctx.fillStyle=`rgba(${color[0]},${color[1]},${color[2]},${alpha})`;
-      const radius=Math.max(.5,size*clamp(p.scale,.65,1.6));
+      const radius=state.source==='sphere'?Math.max(.45,.7*number('pointSize')/1.4*Math.min(width/900,height/600)):Math.max(.5,size*clamp(p.scale,.65,1.6));
       ctx.fillRect(p.x-radius/2,p.y-radius/2,radius,radius);
-      if(markers.length<number('markerCount')&&i%Math.max(1,Math.floor(state.points.length/Math.max(1,number('markerCount'))))===0)markers.push(p);
+      if(state.source!=='sphere'&&markers.length<number('markerCount')&&i%Math.max(1,Math.floor(state.points.length/Math.max(1,number('markerCount'))))===0)markers.push(p);
+    }
+    if(state.source==='sphere'&&number('markerCount')){
+      const anchors=[[-90,58,15],[-24,147,8],[70,129,-4],[100,30,22],[85,-80,3],[18,-148,12],[-72,-124,0],[-105,-20,30],[0,10,85]];
+      for(let i=0;i<number('markerCount');i++){
+        const a=anchors[i%anchors.length];const p=project({x:a[0],y:a[1],z:a[2],seed:100000+i},t,width,height);
+        markers.push({...p,world:a});
+      }
     }
     if(markers.length){
-      ctx.strokeStyle='rgba(194,151,255,.48)';ctx.lineWidth=Math.max(1,width/1100);
+      ctx.strokeStyle=state.source==='sphere'?'rgba(220,230,238,.15)':'rgba(194,151,255,.48)';ctx.lineWidth=Math.max(.5,width/1500);
       if(controls.links.checked){ctx.beginPath();markers.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke()}
-      markers.forEach((p,i)=>{ctx.strokeStyle='rgba(221,191,255,.85)';ctx.strokeRect(p.x-5,p.y-5,10,10);ctx.fillStyle='rgba(238,221,255,.8)';ctx.font=`${Math.max(8,width/130)}px Manrope`;ctx.fillText(String(i+1).padStart(2,'0'),p.x+9,p.y-6)})
+      markers.forEach((p,i)=>{if(state.source==='sphere'){ctx.fillStyle='rgba(235,241,245,.65)';ctx.font=`${Math.max(6,width/145)}px monospace`;const xyz=p.world.map(v=>(v/155).toFixed(2));ctx.fillText(`${String(i+1).padStart(2,'0')} ${xyz.join(' ')}`,p.x+4,p.y-3);ctx.fillRect(p.x-1,p.y-1,2,2)}else{ctx.strokeStyle='rgba(221,191,255,.85)';ctx.strokeRect(p.x-5,p.y-5,10,10);ctx.fillStyle='rgba(238,221,255,.8)';ctx.font=`${Math.max(8,width/130)}px Manrope`;ctx.fillText(String(i+1).padStart(2,'0'),p.x+9,p.y-6)}})
     }
     if(controls.frame.checked){const m=Math.min(width,height)*.035,L=m*.75;ctx.strokeStyle='rgba(177,143,218,.55)';ctx.lineWidth=Math.max(1,width/1100);ctx.beginPath();for(const [x,y,dx,dy] of [[m,m,1,1],[width-m,m,-1,1],[m,height-m,1,-1],[width-m,height-m,-1,-1]]){ctx.moveTo(x,y+dy*L);ctx.lineTo(x,y);ctx.lineTo(x+dx*L,y)}ctx.stroke();ctx.fillStyle='rgba(196,163,229,.8)';ctx.font=`${Math.max(9,width/120)}px Manrope`;ctx.fillText(`GEORGRAD  ·  ${state.points.length.toLocaleString()} PTS`,m,height-m-8)}
   }
