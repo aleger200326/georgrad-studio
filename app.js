@@ -14,15 +14,17 @@
   function makeSphere(){
     const count=Math.round(number('density')*290);
     const points=[];
+    const rings=36,shells=5,perRing=Math.ceil(count/(rings*shells));
     for(let i=0;i<count;i++){
-      const y=1-2*(i+.5)/count;
-      const ring=Math.sqrt(1-y*y);
-      const angle=i*2.399963229728653;
-      const layer=.25+.75*Math.sqrt(noise(i+381));
-      const twist=.24*Math.sin(y*5+angle*.12);
-      const x=(Math.cos(angle+twist)*ring*layer+Math.sin(y*8)*.07)*105;
-      const z=(Math.sin(angle+twist)*ring*layer+Math.cos(y*7)*.06)*90;
-      const yy=(y*layer+Math.sin(angle*2+y*6)*.025)*155;
+      const shell=i%shells,ring=Math.floor(i/shells)%rings,along=Math.floor(i/(rings*shells));
+      const v=1-2*(ring+.5)/rings;
+      const layer=.38+.62*shell/(shells-1);
+      const radius=Math.sqrt(1-v*v)*layer;
+      const angle=along/perRing*TAU+ring*.11+shell*.27;
+      const ripple=Math.sin(angle*2+ring*.22)*.045;
+      const x=(Math.cos(angle)*radius+Math.sin(v*7)*.055)*112+(noise(i+101)-.5)*2.2;
+      const z=(Math.sin(angle)*radius+Math.cos(v*6)*.045)*91+(noise(i+241)-.5)*2.2;
+      const yy=(v*layer+ripple)*119+(noise(i+521)-.5)*1.8;
       const shade=.55+.45*noise(i+43);
       points.push({x,y:yy,z,color:[Math.round(255*shade),Math.round(255*shade),Math.round(255*shade)],seed:i});
     }
@@ -141,7 +143,7 @@
       if(state.source!=='sphere'&&markers.length<number('markerCount')&&i%Math.max(1,Math.floor(state.points.length/Math.max(1,number('markerCount'))))===0)markers.push(p);
     }
     if(state.source==='sphere'&&number('markerCount')){
-      const anchors=[[-90,58,15],[-24,147,8],[70,129,-4],[100,30,22],[85,-80,3],[18,-148,12],[-72,-124,0],[-105,-20,30],[0,10,85]];
+      const anchors=[[-93,52,15],[-24,113,8],[70,100,-4],[101,24,22],[85,-66,3],[18,-115,12],[-72,-97,0],[-105,-17,30],[0,10,85]];
       for(let i=0;i<number('markerCount');i++){
         const a=anchors[i%anchors.length];const p=project({x:a[0],y:a[1],z:a[2],seed:100000+i},t,width,height);
         markers.push({...p,world:a});
