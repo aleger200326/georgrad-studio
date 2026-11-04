@@ -46,15 +46,15 @@
       const r=pixels[p],g=pixels[p+1],b=pixels[p+2],bright=(r+g+b)/3;
       if(isText&&bright<45)continue;
       const seed=y*off.width+x,jitterX=(noise(seed)-.5)*step*.55,jitterY=(noise(seed+719)-.5)*step*.55;
-      const spread=isText?1.15:.58;
+      const spread=isText?.88:.58;
       const u=(x-off.width/2)/(w/2),v=(y-off.height/2)/(h/2);
       const curve=isText?0:Math.max(0,1-u*u-v*v)*24;
       const px=(x-off.width/2)*spread+jitterX,py=(off.height/2-y)*spread+jitterY;
       if(isText){
         // A thin volume gives letters the same layered, granular point texture as the sphere.
-        for(let layer=0;layer<3;layer++){
+        for(let layer=0;layer<5;layer++){
           const grain=noise(seed+layer*997);
-          points.push({x:px+(grain-.5)*2.2,y:py+(noise(seed+layer*733)-.5)*2.2,z:(layer-1)*15+(noise(seed+layer*571)-.5)*9,color:[Math.round(150+grain*105),Math.round(150+grain*105),Math.round(150+grain*105)],seed:seed+layer*1000000});
+          points.push({x:px+(grain-.5)*2.2,y:py+(noise(seed+layer*733)-.5)*2.2,z:(layer-2)*10+(noise(seed+layer*571)-.5)*9,color:[Math.round(150+grain*105),Math.round(150+grain*105),Math.round(150+grain*105)],seed:seed+layer*1000000});
         }
       }else points.push({x:px,y:py,z:(bright/255-.5)*65+curve,color:[r,g,b],seed});
     }
