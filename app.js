@@ -40,16 +40,16 @@
     const pixels=c.getImageData(0,0,off.width,off.height).data;
     const step=clamp(Math.round(5-number('density')/45),2,4);
     const points=[];
-    for(let y=2;y<off.height-2;y+=step)for(let x=2;x<off.width-2;x+=step){
+    for(let y=2;y<off.height-2;y+=step)for(let x=2+(Math.floor(y/step)%2)*Math.floor(step/2);x<off.width-2;x+=step){
       const p=(y*off.width+x)*4,alpha=pixels[p+3];
       if(alpha<75)continue;
       const r=pixels[p],g=pixels[p+1],b=pixels[p+2],bright=(r+g+b)/3;
       if(isText&&bright<45)continue;
-      const seed=y*off.width+x,jitter=(noise(seed)-.5)*step*.3;
+      const seed=y*off.width+x,jitterX=(noise(seed)-.5)*step*.55,jitterY=(noise(seed+719)-.5)*step*.55;
       const spread=isText?1.15:.58;
       const u=(x-off.width/2)/(w/2),v=(y-off.height/2)/(h/2);
       const curve=isText?0:Math.max(0,1-u*u-v*v)*24;
-      points.push({x:(x-off.width/2)*spread+jitter,y:(off.height/2-y)*spread+jitter,z:(bright/255-.5)*(isText?40:65)+curve,color:[r,g,b],seed});
+      points.push({x:(x-off.width/2)*spread+jitterX,y:(off.height/2-y)*spread+jitterY,z:(bright/255-.5)*(isText?40:65)+curve,color:[r,g,b],seed});
     }
     state.points=points;
   }
@@ -120,9 +120,9 @@
   function paint(target,t){
     const ctx=target.getContext('2d',{alpha:false});
     const width=target.width,height=target.height;
-    ctx.fillStyle=state.source==='sphere'?'#000':'#05020b';ctx.fillRect(0,0,width,height);
+    ctx.fillStyle=state.source==='sphere'||state.source==='image'?'#000':'#05020b';ctx.fillRect(0,0,width,height);
     const glow=ctx.createRadialGradient(width/2,height/2,0,width/2,height/2,Math.max(width,height)*.47);
-    glow.addColorStop(0,state.source==='sphere'?'rgba(0,0,0,0)':'rgba(71,30,120,.2)');glow.addColorStop(1,'rgba(4,2,10,0)');ctx.fillStyle=glow;ctx.fillRect(0,0,width,height);
+    glow.addColorStop(0,state.source==='sphere'||state.source==='image'?'rgba(0,0,0,0)':'rgba(71,30,120,.2)');glow.addColorStop(1,'rgba(4,2,10,0)');ctx.fillStyle=glow;ctx.fillRect(0,0,width,height);
     const size=number('pointSize')*Math.min(width/650,height/450);
     const mode=controls.colorMode.value;
     const custom=controls.customColor.value;const customRgb=[1,3,5].map(i=>parseInt(custom.slice(i,i+2),16));
